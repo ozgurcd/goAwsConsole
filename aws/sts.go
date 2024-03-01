@@ -60,12 +60,12 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 		&sts.GetCallerIdentityInput{},
 	)
 	if err != nil {
+		log.Fatalf("unable to get caller identity, %v", err)
 		return
 	}
 
 	currentUser, err := user.Current()
 	if err != nil {
-		log.Fatalf("unable to get current user, %v", err)
 		currentUser = &user.User{Username: "unknown"}
 	}
 
@@ -90,7 +90,6 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 	creds, err := json.Marshal(Credentials)
 	if err != nil {
 		log.Fatalf("unable to marshal credentials, %v", err)
-		return
 	}
 
 	consoleUrl := fmt.Sprintf(
@@ -103,21 +102,18 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 	resp, err := http.Post(consoleUrl, "application/x-www-form-urlencoded", nil)
 	if err != nil {
 		log.Fatalf("unable to get signin token, %v", err)
-		return
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalf("unable to read response body, %v", err)
-		return
 	}
 
 	var federationResponse models.AwsFederationResponse
 	err = json.Unmarshal(body, &federationResponse)
 	if err != nil {
-		fmt.Printf("Decode AWS Federated response: %v", err)
-		return
+		log.Fatalf("Error unmarshalling federation response, %v", err)
 	}
 
 	destinationURL := url.QueryEscape(
