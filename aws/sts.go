@@ -134,7 +134,6 @@ func GetSTSCredentials(rolename string, duration int32, browser string, separate
 
 	loginURL := fmt.Sprintf("%s?Action=login&Issuer=goAwsConsole&Destination=%s&SigninToken=%s", awsFederationURL, destinationURL, federationResponse.SigninToken)
 
-	fmt.Printf("Login URL: %s\n", loginURL)
 	var args []string
 
 	switch runtime.GOOS {
