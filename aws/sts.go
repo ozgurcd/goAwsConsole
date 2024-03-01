@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	//consoleSessDuration  = time.Duration(30) * time.Minute
 	awsFederationURL     = "https://signin.aws.amazon.com/federation"
 	awsFederationURLTemp = "signin.aws.amazon.com/federation"
 	awsTEMPConsoleUrl    = "https://console.aws.amazon.com/"
