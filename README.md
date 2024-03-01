@@ -8,4 +8,19 @@ Since it uses AWS STS to assume the role, it is necessary to pre-configure the r
 Usage:
 ```bash
 goAwsConsole
+
+  -browser string
+        Browser to use for opening the console (default "Google Chrome")
+  -duration int
+        Duration of the assumed role (default 3600)
+  -profile string
+        AWS profile to use
+  -profile-dir string
+        Directory to store profiles
+  -region string
+        AWS region to use (default "us-west-2")
+  -role string
+        AWS role to assume
+  -separate-window
+        Open the console in a separate window
 ```
