@@ -16,7 +16,7 @@ goAwsConsole
   -profile string
         AWS profile to use
   -profile-dir string
-        Directory to store profiles
+        Directory to store profiles, only valid for Google Chrome
   -region string
         AWS region to use (default "us-west-2")
   -role string
@@ -24,3 +24,4 @@ goAwsConsole
   -separate-window
         Open the console in a separate window
 ```
+
