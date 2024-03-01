@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	consoleSessDuration  = time.Duration(30) * time.Minute
+	//consoleSessDuration  = time.Duration(30) * time.Minute
 	awsFederationURL     = "https://signin.aws.amazon.com/federation"
 	awsFederationURLTemp = "signin.aws.amazon.com/federation"
 	awsTEMPConsoleUrl    = "https://console.aws.amazon.com/"
@@ -96,7 +96,7 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 		"https://%s.%s?Action=getSigninToken&SessionDuration=%d&Session=%s",
 		Region,
 		awsFederationURLTemp,
-		int64(consoleSessDuration.Seconds()),
+		int64(config.Duration),
 		url.QueryEscape(string(creds)))
 
 	resp, err := http.Post(consoleUrl, "application/x-www-form-urlencoded", nil)
