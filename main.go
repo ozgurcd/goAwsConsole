@@ -18,7 +18,7 @@ func main() {
 	regionPtr := flag.String("region", "us-west-2", "AWS region to use")
 	browserPtr := flag.String("browser", "Google Chrome", "Browser to use for opening the console")
 	separateWindow := flag.Bool("separate-window", false, "Open the console in a separate window")
-	profileDir := flag.String("profile-dir", "", "Directory to store profiles")
+	profileDir := flag.String("profile-dir", "", "Directory to store Google Chrome profiles")
 
 	flag.Parse()
 
