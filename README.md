@@ -25,3 +25,4 @@ goAwsConsole
         Open the console in a separate window
 ```
 
+Tested only on MacOS. Please let me know if you can test on Linux & Windows.
