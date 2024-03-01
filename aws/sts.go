@@ -16,17 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/ozgurcd/goAwsConsole/models"
 )
-
-type AwsCredentials struct {
-	SessionId    string `json:"sessionId"`
-	SessionKey   string `json:"sessionKey"`
-	SessionToken string `json:"sessionToken"`
-}
-
-type AwsFederationResponse struct {
-	SigninToken string `json:"SigninToken"`
-}
 
 const (
 	consoleSessDuration  = time.Duration(30) * time.Minute
@@ -61,7 +52,7 @@ func InitAWS(profile string, region string) {
 	AwsConfig = cfg
 }
 
-func GetSTSCredentials(rolename string, duration int32, browser string, separateWindow bool, profileDir string) {
+func GetSTSCredentials(config models.RuntimeConfig) {
 	stsClient := sts.NewFromConfig(AwsConfig)
 
 	callerIdentity, err := stsClient.GetCallerIdentity(
@@ -78,11 +69,11 @@ func GetSTSCredentials(rolename string, duration int32, browser string, separate
 		currentUser = &user.User{Username: "unknown"}
 	}
 
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", *callerIdentity.Account, rolename)
+	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", *callerIdentity.Account, config.RoleName)
 	input := &sts.AssumeRoleInput{
 		RoleArn:         aws.String(roleArn),
 		RoleSessionName: aws.String(currentUser.Username),
-		DurationSeconds: &duration,
+		DurationSeconds: &config.Duration,
 	}
 
 	result, err := stsClient.AssumeRole(context.TODO(), input)
@@ -90,7 +81,7 @@ func GetSTSCredentials(rolename string, duration int32, browser string, separate
 		log.Fatalf("unable to assume role, %v", err)
 	}
 
-	Credentials := AwsCredentials{
+	Credentials := models.AwsCredentials{
 		SessionId:    *result.Credentials.AccessKeyId,
 		SessionKey:   *result.Credentials.SecretAccessKey,
 		SessionToken: *result.Credentials.SessionToken,
@@ -122,7 +113,7 @@ func GetSTSCredentials(rolename string, duration int32, browser string, separate
 		return
 	}
 
-	var federationResponse AwsFederationResponse
+	var federationResponse models.AwsFederationResponse
 	err = json.Unmarshal(body, &federationResponse)
 	if err != nil {
 		fmt.Printf("Decode AWS Federated response: %v", err)
@@ -139,8 +130,8 @@ func GetSTSCredentials(rolename string, duration int32, browser string, separate
 	switch runtime.GOOS {
 	case "darwin":
 		var uniqueEnv string
-		if separateWindow {
-			if profileDir == "" {
+		if config.SeparateWin {
+			if config.ProfileDir == "" {
 				currentIndex := time.Now().UnixNano() % 26
 				endIndex := currentIndex + 6
 				if endIndex > 26 {
@@ -150,12 +141,12 @@ func GetSTSCredentials(rolename string, duration int32, browser string, separate
 					uniqueEnv = "abcdefghijklmnopqrstuvwxyz"[currentIndex:endIndex]
 				}
 			} else {
-				uniqueEnv = profileDir
+				uniqueEnv = config.ProfileDir
 			}
 			args = []string{
 				"open",
 				"-na",
-				browser,
+				config.Browser,
 				"--args",
 				fmt.Sprintf("--profile-directory=\"%s\"", uniqueEnv),
 				"--new-window"}
@@ -164,7 +155,7 @@ func GetSTSCredentials(rolename string, duration int32, browser string, separate
 			args = []string{
 				"open",
 				"-na",
-				browser,
+				config.Browser,
 				"--args",
 			}
 		}

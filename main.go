@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ozgurcd/goAwsConsole/aws"
+	"github.com/ozgurcd/goAwsConsole/models"
 )
 
 func main() {
@@ -39,6 +40,16 @@ func main() {
 
 	duration := int32(*durationPtr)
 
+	rConfig := models.RuntimeConfig{
+		Profile:     profile,
+		RoleName:    rolename,
+		Duration:    duration,
+		Region:      *regionPtr,
+		Browser:     *browserPtr,
+		SeparateWin: *separateWindow,
+		ProfileDir:  *profileDir,
+	}
+
 	aws.InitAWS(profile, *regionPtr)
-	aws.GetSTSCredentials(rolename, duration, *browserPtr, *separateWindow, *profileDir)
+	aws.GetSTSCredentials(rConfig)
 }
