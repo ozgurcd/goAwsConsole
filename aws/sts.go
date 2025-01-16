@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os/exec"
@@ -30,7 +29,7 @@ var (
 	Region    string
 )
 
-func InitAWS(profile string, region string) {
+func InitAWS(profile string, region string) error {
 	var cfg aws.Config
 	var err error
 
@@ -45,13 +44,14 @@ func InitAWS(profile string, region string) {
 
 	cfg, err = config.LoadDefaultConfig(context.TODO(), options...)
 	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
+		return err
 	}
 
 	AwsConfig = cfg
+	return nil
 }
 
-func GetSTSCredentials(config models.RuntimeConfig) {
+func GetSTSCredentials(config models.RuntimeConfig) error {
 	stsClient := sts.NewFromConfig(AwsConfig)
 
 	callerIdentity, err := stsClient.GetCallerIdentity(
@@ -59,8 +59,7 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 		&sts.GetCallerIdentityInput{},
 	)
 	if err != nil {
-		log.Fatalf("unable to get caller identity, %v", err)
-		return
+		return err
 	}
 
 	currentUser, err := user.Current()
@@ -77,7 +76,7 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 
 	result, err := stsClient.AssumeRole(context.TODO(), input)
 	if err != nil {
-		log.Fatalf("unable to assume role, %v", err)
+		return err
 	}
 
 	Credentials := models.AwsCredentials{
@@ -88,7 +87,7 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 
 	creds, err := json.Marshal(Credentials)
 	if err != nil {
-		log.Fatalf("unable to marshal credentials, %v", err)
+		return err
 	}
 
 	consoleUrl := fmt.Sprintf(
@@ -100,24 +99,27 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 
 	resp, err := http.Post(consoleUrl, "application/x-www-form-urlencoded", nil)
 	if err != nil {
-		log.Fatalf("unable to get signin token, %v", err)
+		return err
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to get signin token: %d", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("unable to read response body, %v", err)
+		return err
 	}
 
 	var federationResponse models.AwsFederationResponse
 	err = json.Unmarshal(body, &federationResponse)
 	if err != nil {
-		log.Fatalf("Error unmarshalling federation response, %v", err)
+		return err
 	}
 
 	destinationURL := url.QueryEscape(
 		fmt.Sprintf("%sconsole/home?region=%s", awsTEMPConsoleUrl, Region))
-
 	loginURL := fmt.Sprintf("%s?Action=login&Issuer=goAwsConsole&Destination=%s&SigninToken=%s", awsFederationURL, destinationURL, federationResponse.SigninToken)
 
 	var args []string
@@ -163,6 +165,7 @@ func GetSTSCredentials(config models.RuntimeConfig) {
 	cmd := exec.Command(args[0], append(args[1:], loginURL)...)
 	err = cmd.Run()
 	if err != nil {
-		log.Fatalf("unable to open browser, %v", err)
+		return err
 	}
+	return nil
 }

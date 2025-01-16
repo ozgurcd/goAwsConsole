@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/ozgurcd/goAwsConsole/aws"
@@ -50,6 +51,14 @@ func main() {
 		ProfileDir:  *profileDir,
 	}
 
-	aws.InitAWS(profile, *regionPtr)
-	aws.GetSTSCredentials(rConfig)
+	err := aws.InitAWS(profile, *regionPtr)
+	if err != nil {
+		fmt.Printf("Failed to initialize AWS: %s\n", err.Error())
+		os.Exit(1)
+	}
+	err = aws.GetSTSCredentials(rConfig)
+	if err != nil {
+		fmt.Printf("Failed to get STS credentials: %s\n", err.Error())
+		os.Exit(1)
+	}
 }

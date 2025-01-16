@@ -1,6 +1,6 @@
 module github.com/ozgurcd/goAwsConsole
 
-go 1.22.0
+go 1.23.4
 
 require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.4
@@ -20,4 +20,3 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.1 // indirect
 	github.com/aws/smithy-go v1.20.1 // indirect
 )
-
